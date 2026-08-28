@@ -4,7 +4,7 @@
 
 This repository contains my implementation of the Full Stack Developer Programming Skill Assessment – Bidding Challenge.
 
-The challenge is implemented as a full-stack web application using Laravel, React, TypeScript and MySQL.
+The application is a full-stack bidding system built with **Laravel, React, TypeScript, and MySQL**.
 
 The implementation is divided into four assignments:
 
@@ -13,7 +13,7 @@ The implementation is divided into four assignments:
 3. Unit Testing
 4. Automated Deployment Process
 
-The application demonstrates a complete bidding flow from the frontend to the backend, including bid validation, auction state management, live bidding between multiple browser sessions, and automated testing.
+The application demonstrates the complete bidding flow, including bid validation, auction state management, multi-browser bidding, automated testing, and automated deployment.
 
 ---
 
@@ -21,33 +21,36 @@ The application demonstrates a complete bidding flow from the frontend to the ba
 
 ## Frontend
 
-- React
-- TypeScript
-- Vite
-- CSS
-- Vitest
-- React Testing Library
-- jsdom
+* React
+* TypeScript
+* Vite
+* CSS
+* Vitest
+* React Testing Library
+* jsdom
 
 ## Backend
 
-- PHP
-- Laravel
-- Laravel Eloquent ORM
-- Laravel REST API
-- PHPUnit
-- Laravel Feature Tests
+* PHP
+* Laravel
+* Laravel Eloquent ORM
+* Laravel REST API
+* PHPUnit
+* Laravel Feature Tests
 
 ## Database
 
-- MySQL
+* MySQL
 
-## Development Tools
+## Development & Deployment
 
-- Node.js
-- npm
-- Composer
-- Git
+* Node.js
+* npm
+* Composer
+* Git
+* GitHub
+* Vercel
+* Railway
 
 ---
 
@@ -55,7 +58,7 @@ The application demonstrates a complete bidding flow from the frontend to the ba
 
 ```text
 bidding-assignment/
-│
+
 ├── frontend/
 │   ├── src/
 │   │   ├── App.tsx
@@ -75,7 +78,7 @@ bidding-assignment/
 └── README.md
 ```
 
-The frontend and backend are separated so that the React application communicates with Laravel through API endpoints.
+The frontend and backend are separated into independent applications. React communicates with Laravel through REST API endpoints.
 
 ---
 
@@ -83,36 +86,32 @@ The frontend and backend are separated so that the React application communicate
 
 The first assignment implements the basic product bidding page.
 
-The application displays a single product and provides a bidding interface where users can enter their name and bid amount.
-
 ## Features
 
-- Display the product information
-- Display the starting price
-- Display the current bid
-- Display bid history
-- Display bidder name
-- Allow users to enter their name
-- Allow users to enter a bid amount
-- Display the bid increment
-- Display the current user's bid
-- Display the auction status
-- Display the countdown
-- Display the winner when the auction ends
+* Display product information
+* Display starting price
+* Display current bid
+* Display bid history
+* Display bidder name
+* Enter bidder name
+* Enter bid amount
+* Display bid increment
+* Display current user's bid
+* Display auction status
+* Display countdown
+* Display the winner when the auction ends
 
 ## Bid Validation
 
-A bid is only considered valid when:
+A bid is valid only when:
 
-- A bidder name is provided
-- A bid amount is provided
-- The bid amount is a positive number
-- The bid amount is higher than the current highest bid
-- The auction is still active
+* A bidder name is provided
+* A bid amount is provided
+* The bid amount is a positive number
+* The bid amount is higher than the current highest bid
+* The auction has not ended
 
-The frontend provides immediate feedback by enabling or disabling the BID button based on the current input.
-
-The backend also validates the bid before storing it in the database.
+Frontend validation provides immediate feedback, while the backend performs the final validation before storing the bid.
 
 This prevents the application from relying only on client-side validation.
 
@@ -120,182 +119,164 @@ This prevents the application from relying only on client-side validation.
 
 # Assignment 2 – Live Bidding
 
-The second assignment extends the basic bidding page into a live bidding experience.
+The second assignment extends the bidding page to support multiple browser sessions participating in the same auction.
 
-The main requirement is that multiple users should be able to participate in the same auction.
-
-For example, two different browser sessions can open the same auction:
+The backend acts as the **source of truth** for the auction state.
 
 ```text
 Browser A
-    |
-    | Submit Bid
-    v
-Laravel Backend
-    |
-    | Validate & Store Bid
-    v
+    │
+    │ Submit Bid
+    ▼
+Laravel API
+    │
+    │ Validate & Store
+    ▼
 MySQL
-    |
-    | Updated Auction State
-    v
+    │
+    │ Updated Auction State
+    ▼
 Browser B
 ```
 
-The backend acts as the source of truth for the auction.
+The backend manages:
 
-This means different browser sessions do not maintain independent auction states.
+* Current highest bid
+* Bid history
+* Bidder information
+* Auction start time
+* Auction end time
+* Auction status
+* Winning bidder
 
-## Live Bidding Behaviour
+When a bid is submitted, Laravel validates the request against the latest auction state and stores the valid bid in MySQL.
 
-The backend is responsible for maintaining:
-
-- Current highest bid
-- Bid history
-- Bidder information
-- Auction start time
-- Auction end time
-- Auction status
-- Winning bidder
-
-When a new bid is submitted:
-
-1. The backend checks whether the auction is still active.
-2. The backend retrieves the latest auction state.
-3. The bid amount is validated against the current highest bid.
-4. The valid bid is stored in MySQL.
-5. The latest auction state is returned to the frontend.
-6. Other browser sessions can retrieve the updated state.
-
-This ensures that the frontend does not become the source of truth for the auction.
+The frontend periodically requests the latest auction state so that multiple browser sessions can reflect updated bidding information.
 
 ## Auction Countdown
 
-The auction has a one-minute bidding period.
+The auction lasts for one minute.
 
 The countdown starts when the first valid bid is placed.
 
-The frontend displays the remaining time and updates the countdown while the auction is active.
+When the auction expires:
 
-When the countdown reaches zero:
-
-- The auction is marked as ended.
-- New bids are rejected.
-- The final highest bid becomes the winning bid.
-- The winning bidder is displayed.
-- The frontend changes to the ended state.
-
-## Concurrent Bidding
-
-The backend performs the important bid validation instead of trusting the frontend.
-
-For example, if the current bid is RM 150:
-
-```text
-Browser A                Backend                 Browser B
-
-Bid RM 180  ---------->  Validate
-                              |
-                              v
-                         Store RM 180
-                              |
-                              v
-                      Current Bid = RM 180
-                              |
-                              +-----------------> Updated Bid
-```
-
-This approach helps prevent a browser from submitting a bid based on outdated client-side data.
+* The auction is marked as ended
+* New bids are rejected
+* The highest bid becomes the winning bid
+* The winning bidder is displayed
 
 ---
 
 # Assignment 3 – Unit Testing
 
-The third assignment focuses on automated testing for both the frontend and backend.
-
-The purpose of the tests is to verify the application's main functionality and business rules without depending only on manual testing.
-
----
+The application includes automated tests for both the frontend and backend.
 
 ## Frontend Testing
 
 The frontend uses:
 
-- Vitest
-- React Testing Library
-- jsdom
+* Vitest
+* React Testing Library
+* jsdom
 
-The frontend test suite covers the main bidding user flows.
+The tests cover the main bidding user flows, including:
 
-### Current Frontend Tests
-
-The following scenarios are covered:
-
-1. Displays the product when loaded
-2. Displays the current bid and bid history
-3. Disables the BID button when name and amount are empty
-4. Disables the BID button when the bid is not higher than the current price
-5. Enables the BID button for a valid bid
-6. Submits a valid bid
-7. Displays the winner when the auction has ended
-
-All current frontend tests are passing.
+1. Displaying the product
+2. Displaying the current bid and bid history
+3. Disabling the BID button for invalid input
+4. Enabling the BID button for a valid bid
+5. Submitting a valid bid
+6. Displaying the winner when the auction ends
 
 ### Run Frontend Tests
-
-From the project root:
 
 ```bash
 cd frontend
 npx vitest run
 ```
 
-Expected result:
-
-```text
-Test Files  1 passed
-Tests       7 passed
-```
-
-### Run Frontend Tests in Watch Mode
-
-During development, tests can also be run in watch mode:
+Watch mode:
 
 ```bash
 cd frontend
 npx vitest
 ```
 
----
-
 ## Backend Testing
 
-The backend uses Laravel's testing framework with PHPUnit.
+Laravel Feature Tests and PHPUnit are used to test API behaviour and bidding business rules.
 
-Backend tests are used to verify API behaviour and bidding business rules.
+The tests cover areas such as:
 
-The backend tests cover areas such as:
-
-- Auction retrieval
-- Bid creation
-- Bid validation
-- Preventing invalid bids
-- Preventing bids below or equal to the current highest bid
-- Auction state validation
-- Preventing bids after the auction has ended
-- Correctly updating the current highest bid
-- Correctly storing bid history
+* Auction retrieval
+* Bid creation
+* Bid validation
+* Rejecting bids below or equal to the current bid
+* Auction state validation
+* Rejecting bids after the auction ends
+* Updating the current highest bid
+* Storing bid history
 
 ### Run Backend Tests
-
-From the project root:
 
 ```bash
 cd backend
 php artisan test
 ```
 
-Laravel will execute the backend test suite and report the number of passing and failing tests.
+---
+
+# Assignment 4 – Automated Deployment Process
+
+The application uses **GitHub, Vercel, and Railway** for automated deployment.
+
+## Deployment Architecture
+
+* **Frontend:** React + TypeScript → Vercel
+* **Backend:** Laravel + PHP → Railway
+* **Database:** MySQL → Railway
+* **Source Control:** GitHub
+
+```text
+GitHub
+  │
+  ├── React Frontend → Vercel
+  │
+  └── Laravel Backend → Railway → MySQL
+```
+
+Vercel and Railway are connected to the GitHub repository. New changes pushed or merged into the configured branch trigger new deployments.
+
+The frontend and backend are deployed independently, while Laravel remains the source of truth for auction and bidding data.
+
+## Testing with Reset
+
+The application can be tested using multiple browser sessions to verify that bidding state is updated correctly.
+
+A **Reset Auction** button is also provided as a testing utility.
+
+It:
+
+* Removes all bids
+* Restores the current price to the starting price
+* Changes the auction status back to `pending`
+* Resets `started_at` to `null`
+* Resets `ends_at` to `null`
+
+This allows the auction flow to be tested repeatedly without manually modifying the database.
+
+## Live Application
+
+https://bidding-assignment.vercel.app/
+
+## Future Improvements
+
+For a production-scale implementation, I would introduce WebSockets or Laravel Broadcasting for real-time bid updates instead of periodic polling.
+
+I would also expand automated test coverage for concurrent requests, auction expiration during bid requests, and additional API edge cases.
+
+A dedicated CI/CD pipeline could also be introduced to run automated tests before production deployment.
 
 ---
 
@@ -303,17 +284,15 @@ Laravel will execute the backend test suite and report the number of passing and
 
 ## Requirements
 
-Before running the project, make sure the following are installed:
-
-- PHP
-- Composer
-- Node.js
-- npm
-- MySQL
+* PHP
+* Composer
+* Node.js
+* npm
+* MySQL
 
 ---
 
-# Backend Setup
+## Backend Setup
 
 Go to the backend directory:
 
@@ -352,11 +331,13 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Run the database migrations and seed the initial data:
+Run the migrations and seed the initial data:
 
 ```bash
 php artisan migrate:fresh --seed
 ```
+
+> `migrate:fresh --seed` is intended for local development/testing. It resets the local database and recreates the initial auction data.
 
 Start the Laravel development server:
 
@@ -374,7 +355,7 @@ http://127.0.0.1:8000
 
 # Frontend Setup
 
-Open another terminal and go to the frontend directory:
+Open another terminal:
 
 ```bash
 cd frontend
@@ -398,15 +379,13 @@ The frontend will normally be available at:
 http://localhost:5173
 ```
 
-The frontend communicates with the Laravel backend API.
+The frontend communicates with the Laravel backend through the configured API URL.
 
 ---
 
 # Testing Workflow
 
-The project can be tested separately for frontend and backend.
-
-## Frontend
+## Frontend Tests
 
 ```bash
 cd frontend
@@ -414,7 +393,7 @@ npm install
 npx vitest run
 ```
 
-## Backend
+## Backend Tests
 
 ```bash
 cd backend
@@ -439,6 +418,4 @@ cd frontend
 npm run dev
 ```
 
-Then open the frontend URL provided by Vite in the browser.
-
----
+Then open the frontend URL provided by Vite.
