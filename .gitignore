@@ -14,7 +14,8 @@ backend/vendor/
 backend/storage/*.key
 backend/storage/framework/
 backend/storage/logs/
-backend/bootstrap/cache/
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitignore
 
 # IDE
 .vscode/
