@@ -64,11 +64,11 @@ function App() {
   const endingRef = useRef(false)
 
   // Fetch Product
-
+  const API_URL = import.meta.env.VITE_API_URL
   const fetchProduct = async () => {
     try {
       const response = await axios.get<Product>(
-        'http://127.0.0.1:8000/api/products/1'
+        `${API_URL}/api/products/1`
       )
 
       const latestProduct = response.data
@@ -312,7 +312,7 @@ function App() {
       setIsSubmitting(true)
 
       const response = await axios.post(
-        `http://127.0.0.1:8000/api/products/${product.id}/bids`,
+      `${API_URL}/api/products/${product.id}/bids`,
         {
           name: name.trim(),
           amount: bidValue,
