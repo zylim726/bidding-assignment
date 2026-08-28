@@ -30,9 +30,6 @@ class ProductController extends Controller
 
         /*
          * LOAD BIDS
-         *
-         * Highest amount first.
-         * If same amount, newest bid first.
          */
 
         $product->load([
@@ -46,10 +43,6 @@ class ProductController extends Controller
 
         /*
          * FIND WINNER
-         *
-         * Only after auction has ended.
-         *
-         * Highest bid wins.
          */
 
         $winner = null;
@@ -81,6 +74,60 @@ class ProductController extends Controller
             'ends_at' => $product->ends_at,
             'bids' => $product->bids,
             'winner' => $winner,
+        ]);
+    }
+
+    /**
+     * Reset auction to its initial state for testing.
+     */
+    public function reset(Product $product): JsonResponse
+    {
+        /*
+         * REMOVE ALL BIDS FOR THIS PRODUCT
+         */
+        $product->bids()->delete();
+
+        /*
+         * RESET AUCTION TO INITIAL STATE
+         */
+        $product->update([
+            'current_price' => $product->starting_price,
+            'status' => 'pending',
+            'started_at' => null,
+            'ends_at' => null,
+        ]);
+
+        /*
+         * REFRESH PRODUCT
+         */
+        $product->refresh();
+
+        /*
+         * LOAD EMPTY BID HISTORY
+         */
+        $product->load([
+            'bids' => function ($query) {
+                $query
+                    ->with('user')
+                    ->orderByDesc('amount')
+                    ->orderByDesc('id');
+            },
+        ]);
+
+        return response()->json([
+            'message' => 'Auction reset successfully.',
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'description' => $product->description,
+                'starting_price' => $product->starting_price,
+                'current_price' => $product->current_price,
+                'status' => $product->status,
+                'started_at' => $product->started_at,
+                'ends_at' => $product->ends_at,
+                'bids' => $product->bids,
+                'winner' => null,
+            ],
         ]);
     }
 }

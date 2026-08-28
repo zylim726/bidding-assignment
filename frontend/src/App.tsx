@@ -50,6 +50,7 @@ function App() {
   const [remainingSeconds, setRemainingSeconds] = useState(0)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
 
   const [bidError, setBidError] = useState('')
 
@@ -378,6 +379,54 @@ function App() {
       }
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  //Reset Bid
+    // Reset Auction
+  const handleReset = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to reset the auction? All bids will be cleared.'
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      setIsResetting(true)
+      setBidError('')
+
+      const response = await axios.post(
+        `${API_URL}/api/products/${product.id}/reset`
+      )
+
+      const latestProduct: Product =
+        response.data.product
+
+      // Reset countdown
+      countdownEndRef.current = null
+      endingRef.current = false
+      setRemainingSeconds(0)
+
+      // Update product
+      setProduct(latestProduct)
+
+      // Clear form
+      setAmount('')
+      setName('')
+
+      // Reset bid history
+      setShowAllBids(false)
+
+    } catch (error) {
+      console.error(error)
+
+      setBidError(
+        'Failed to reset auction. Please try again.'
+      )
+    } finally {
+      setIsResetting(false)
     }
   }
 
@@ -759,10 +808,26 @@ function App() {
 
             )}
 
-        </footer>
-        
-
+        </footer> 
       )}
+
+        {/* TESTING CONTROL */}
+
+        <div className="reset-container">
+          <button
+            type="button"
+            className="reset-button"
+            onClick={handleReset}
+            disabled={isResetting}
+          >
+            {isResetting
+              ? 'RESETTING...'
+              : 'RESET AUCTION'
+            }
+          </button>
+        </div>
+
+     
 
     </main>
   )
