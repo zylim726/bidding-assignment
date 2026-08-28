@@ -12,8 +12,10 @@ frontend/dist/
 # Laravel
 backend/vendor/
 backend/storage/*.key
-backend/storage/framework/
+backend/storage/framework/*
+!backend/storage/framework/.gitignore
 backend/storage/logs/
+
 backend/bootstrap/cache/*
 !backend/bootstrap/cache/.gitignore
 
